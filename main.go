@@ -1,14 +1,54 @@
 package main
 
 import (
+	"fmt"
 	"image/color"
 	"strconv"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-var AU float32 = 149_597_870
-var EARTH_POS rl.Vector3 = rl.Vector3{X: 0, Y: 0, Z: 0}
+const (
+	// milli astronomical unit
+	mAU float32 = 1.0
+	// astronomical unit
+	AU float32 = 1000.0
+
+	// Megameter
+	GM float32 = 1.0 / 150.0
+)
+
+type Body interface {
+	Draw()
+}
+
+type AstroBody struct {
+	Position rl.Vector3
+	Radius   float32
+	Color    color.RGBA
+}
+
+func (a AstroBody) Draw() {
+	rl.DrawSphere(a.Position, a.Radius, a.Color)
+}
+
+var Earth AstroBody = AstroBody{
+	Position: rl.Vector3{X: AU, Y: 0, Z: 0},
+	Radius:   6.371 * GM,
+	Color:    color.RGBA{121, 110, 211, 255},
+}
+
+var Moon AstroBody = AstroBody{
+	Position: rl.Vector3{X: Earth.Position.X, Y: 0, Z: Earth.Radius + 400*GM},
+	Radius:   1.737 * GM,
+	Color:    color.RGBA{111, 111, 111, 255},
+}
+
+var Sun AstroBody = AstroBody{
+	Position: rl.Vector3{X: 0, Y: 0, Z: 0},
+	Radius:   696.340 * GM,
+	Color:    color.RGBA{211, 181, 111, 255},
+}
 
 func main() {
 	rl.InitWindow(800, 450, "raylib [core] example - basic window")
@@ -19,8 +59,8 @@ func main() {
 	rl.DisableCursor()
 
 	camera := rl.Camera3D{
-		Position:   rl.Vector3{X: 10, Y: 10, Z: 10},
-		Target:     rl.Vector3{X: 0, Y: 0, Z: 0},
+		Position:   Moon.Position,
+		Target:     Earth.Position,
 		Up:         rl.Vector3{X: 0, Y: 1, Z: 0},
 		Fovy:       45,
 		Projection: rl.CameraPerspective,
@@ -34,9 +74,12 @@ func main() {
 		rl.DrawText("fps: "+strconv.FormatInt(int64(rl.GetFPS()), 10), 10, 10, 20, rl.LightGray)
 
 		rl.BeginMode3D(camera)
-		rl.DrawSphere(EARTH_POS, 1.0, color.RGBA{121, 110, 211, 255})
+		rl.DrawSphere(Earth.Position, Earth.Radius, Earth.Color)
+		rl.DrawSphere(Sun.Position, Sun.Radius, Sun.Color)
+		rl.DrawSphere(Moon.Position, Moon.Radius, Moon.Color)
 		rl.EndMode3D()
-
 		rl.EndDrawing()
 	}
+
+	fmt.Printf("Moon coords: %f %f %f, rad: %f", Moon.Position.X, Moon.Position.Y, Moon.Position.Z, Moon.Radius)
 }
