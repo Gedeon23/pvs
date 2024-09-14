@@ -22,32 +22,36 @@ type Body interface {
 	Draw()
 }
 
-type AstroBody struct {
+type CelestialBody struct {
 	Position rl.Vector3
 	Radius   float32
 	Color    color.RGBA
 }
 
-func (a AstroBody) Draw() {
+func (a CelestialBody) Draw() {
 	rl.DrawSphere(a.Position, a.Radius, a.Color)
 }
 
-var Earth AstroBody = AstroBody{
+var Earth CelestialBody = CelestialBody{
 	Position: rl.Vector3{X: AU, Y: 0, Z: 0},
 	Radius:   6.371 * GM,
 	Color:    color.RGBA{121, 110, 211, 255},
 }
 
-var Moon AstroBody = AstroBody{
+var Moon CelestialBody = CelestialBody{
 	Position: rl.Vector3{X: Earth.Position.X, Y: 0, Z: Earth.Radius + 400*GM},
 	Radius:   1.737 * GM,
 	Color:    color.RGBA{111, 111, 111, 255},
 }
 
-var Sun AstroBody = AstroBody{
+var Sun CelestialBody = CelestialBody{
 	Position: rl.Vector3{X: 0, Y: 0, Z: 0},
 	Radius:   696.340 * GM,
 	Color:    color.RGBA{211, 181, 111, 255},
+}
+
+func DrawCelestialBody(body CelestialBody) {
+	rl.DrawSphere(body.Position, body.Radius, body.Color)
 }
 
 func main() {
@@ -74,9 +78,9 @@ func main() {
 		rl.DrawText("fps: "+strconv.FormatInt(int64(rl.GetFPS()), 10), 10, 10, 20, rl.LightGray)
 
 		rl.BeginMode3D(camera)
-		rl.DrawSphere(Earth.Position, Earth.Radius, Earth.Color)
-		rl.DrawSphere(Sun.Position, Sun.Radius, Sun.Color)
-		rl.DrawSphere(Moon.Position, Moon.Radius, Moon.Color)
+		DrawCelestialBody(Earth)
+		DrawCelestialBody(Sun)
+		DrawCelestialBody(Moon)
 		rl.EndMode3D()
 		rl.EndDrawing()
 	}
