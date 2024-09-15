@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image/color"
 	"strconv"
 
@@ -16,15 +17,12 @@ const (
 	// Megameter
 	MM float32 = 1.0 / 150_000.0
 
-	BODY_SCALE float32 = 10_000.0
+	BODY_SCALE  float32 = 10_000.0
+	FOCUS_SCALE float32 = 100.0
 )
 
-type Body interface {
-	Draw()
-}
-
 type CelestialBody interface {
-	Draw()
+	Draw(scale float32)
 	GetPosition() rl.Vector3
 	GetName() string
 }
@@ -36,8 +34,8 @@ type Star struct {
 	Color    color.RGBA
 }
 
-func (s Star) Draw() {
-	rl.DrawSphere(s.Position, s.Radius, s.Color)
+func (s Star) Draw(scale float32) {
+	rl.DrawSphere(s.Position, s.Radius*scale, s.Color)
 }
 
 func (s Star) GetPosition() rl.Vector3 {
@@ -55,8 +53,8 @@ type Planet struct {
 	Color    color.RGBA
 }
 
-func (p Planet) Draw() {
-	rl.DrawSphere(p.Position, p.Radius, p.Color)
+func (p Planet) Draw(scale float32) {
+	rl.DrawSphere(p.Position, p.Radius*scale, p.Color)
 }
 
 func (p Planet) GetPosition() rl.Vector3 {
@@ -74,8 +72,8 @@ type Moon struct {
 	Color    color.RGBA
 }
 
-func (m Moon) Draw() {
-	rl.DrawSphere(m.Position, m.Radius, m.Color)
+func (m Moon) Draw(scale float32) {
+	rl.DrawSphere(m.Position, m.Radius*scale, m.Color)
 }
 
 func (m Moon) GetPosition() rl.Vector3 {
@@ -107,6 +105,8 @@ var Sun Star = Star{
 	Color:    color.RGBA{211, 181, 111, 255},
 }
 
+var CURRENTLY_VIEWED CelestialBody = Sun
+
 func main() {
 	rl.InitWindow(800, 450, "raylib [core] example - basic window")
 	defer rl.CloseWindow()
@@ -134,22 +134,31 @@ func main() {
 		rl.BeginDrawing()
 
 		rl.ClearBackground(rl.Black)
+
+		// Draw Celestial Bodies
+		rl.BeginMode3D(camera)
+		for _, body := range celestBodies {
+			if body == CURRENTLY_VIEWED {
+				body.Draw(2.0)
+			} else {
+				body.Draw(1.0)
+			}
+		}
+		rl.EndMode3D()
+
+		// Overlay Text
 		rl.DrawText("fps: "+strconv.FormatInt(int64(rl.GetFPS()), 10), 10, 10, 20, rl.LightGray)
 
 		writtenLines := 0
+		CURRENTLY_VIEWED = nil
 		for _, body := range celestBodies {
-			sun_camera_proj := rl.Vector3DotProduct(rl.Vector3Subtract(body.GetPosition(), camera.Position), rl.Vector3Normalize(camera.Target))
-			if sun_camera_proj > 0.95 {
-				rl.DrawText("You are looking at the "+body.GetName(), 10, int32(35+writtenLines*25), 20, rl.LightGray)
+			angle := rl.Vector3Angle(rl.Vector3Subtract(body.GetPosition(), camera.Position), rl.Vector3Subtract(camera.Target, camera.Position))
+			if angle < 0.1 {
+				rl.DrawText("You are looking at the "+body.GetName()+fmt.Sprintf(" Angle: %f", angle), 10, int32(35+writtenLines*25), 20, rl.LightGray)
+				CURRENTLY_VIEWED = body
 				writtenLines++
 			}
 		}
-
-		rl.BeginMode3D(camera)
-		for _, body := range celestBodies {
-			body.Draw()
-		}
-		rl.EndMode3D()
 		rl.EndDrawing()
 	}
 }
