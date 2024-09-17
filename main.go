@@ -92,10 +92,14 @@ var Earth Planet = Planet{
 }
 
 var TheMoon Moon = Moon{
-	Name:     "Moon",
-	Position: rl.Vector3{X: Earth.Position.X, Y: 0, Z: Earth.Radius + 400*MM*BODY_SCALE},
-	Radius:   1.737 * MM * BODY_SCALE,
-	Color:    color.RGBA{111, 111, 111, 255},
+	Name: "Moon",
+	Position: rl.Vector3{
+		X: Earth.Position.X,
+		Y: 0,
+		Z: Earth.Radius + 400*MM*BODY_SCALE,
+	},
+	Radius: 1.737 * MM * BODY_SCALE,
+	Color:  color.RGBA{111, 111, 111, 255},
 }
 
 var Sun Star = Star{
